@@ -109,13 +109,15 @@ async function initializeApp() {
   try {
     logger.info('Initializing application...');
     dbManager.createConnection();
-    await dbManager.connectWithRetry();
-    await dbManager.initializeDatabase();
-    logger.info('Application initialized');
+    
+    // Use a non-blocking approach so the server can still listen on Port 5000
+    dbManager.connectWithRetry()
+      .then(() => dbManager.initializeDatabase())
+      .then(() => logger.info('Application initialized'))
+      .catch(err => logger.error('Database background init failed: %s', err.message));
+
   } catch (err) {
-    logger.error('Initialization failed: %s', err.message);
-    // Continue running (useful in dev), but for production exit
-    if (process.env.NODE_ENV === 'production') process.exit(1);
+    logger.error('Pre-init failure: %s', err.message);
   }
 }
 
