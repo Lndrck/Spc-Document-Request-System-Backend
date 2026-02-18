@@ -63,7 +63,6 @@ class DatabaseManager {
                 database: process.env.DB_NAME,
                 port: parseInt(process.env.DB_PORT),
                 connectionLimit: 10,
-                queueLimit: 0,
                 multipleStatements: true,
                 connectTimeout: 10000,
                 ssl: { rejectUnauthorized: false }
@@ -71,7 +70,7 @@ class DatabaseManager {
             console.log('🔗 MySQL connection pool created successfully');
             return this.db;
         } catch (error) {
-            console.error('❌ Failed to create database connection pool:', error.message);
+            console.error('❌ Pool creation failed:', error.message);
             throw error;
         }
     }
@@ -140,17 +139,15 @@ class DatabaseManager {
      */
     async initializeDatabase() {
         try {
-            if (!this.isConnected || !this.db) {
-                console.warn('⚠️ Database not connected, skipping initialization');
-                return;
-            }
-            console.log('🔄 Starting table verification...');
-            // REMOVED: CREATE DATABASE and USE commands to avoid Access Denied errors
+            if (!this.isConnected || !this.db) return;
+
+            console.log('🔄 Starting table verification in database: ' + process.env.DB_NAME);
+            // Skip CREATE DATABASE logic entirely
             await this.createTables();
             await this.createDefaultUsers();
-            console.log('✅ Database tables verified/created successfully');
+            console.log('✅ Database initialization completed successfully');
         } catch (error) {
-            console.error('❌ Error during database initialization:', error.message);
+            console.error('❌ Initialization failed:', error.message);
             throw error;
         }
     }
