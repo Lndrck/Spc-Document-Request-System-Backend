@@ -54,24 +54,30 @@ class DatabaseManager {
      *
      * @returns {Object} MySQL connection pool instance
      */
+    /**
+     * Create database connection pool
+     * Uses a single DATABASE_URL for cross-platform compatibility (Render to Railway)
+     */
     createConnection() {
         try {
+            const connectionString = process.env.DATABASE_URL;
+
+            if (!connectionString) {
+                throw new Error('DATABASE_URL is not defined in environment variables');
+            }
+
             this.db = mysql.createPool({
-                host: process.env.DB_HOST, // crossover.proxy.rlwy.net
-                user: process.env.DB_USER, // root
-                password: process.env.DB_PASS, // omDntoCrWnsUAMoExywuaZpzAnwMFiwd
-                database: process.env.DB_NAME, // railway
-                port: Number(process.env.DB_PORT), // 28318
+                uri: connectionString, // Pass the full mysql://... string here
                 connectionLimit: 10,
                 multipleStatements: true,
                 connectTimeout: 10000,
-                // CRITICAL: Force SSL for Railway Public Proxy
+                // CRITICAL for Render -> Railway:
                 ssl: {
                     rejectUnauthorized: false
                 }
             });
 
-            console.log('🔗 MySQL connection pool established via SSL');
+            console.log('🔗 MySQL connection pool established via DATABASE_URL');
             return this.db;
         } catch (error) {
             console.error('❌ Pool creation failed:', error.message);
@@ -102,16 +108,14 @@ class DatabaseManager {
             try {
                 if (!this.db) { this.createConnection(); }
 
-                // Simple connection test - no user creation logic
+                // Simple connection test
                 await this.db.query('SELECT 1');
                 console.log('✅ Database connected successfully');
                 this.isConnected = true;
                 return;
             } catch (err) {
-                // Clear, actionable logging showing which env vars were used (without exposing the password)
-                console.error(`❌ Database connection failed for user='${process.env.DB_USER}' host='${process.env.DB_HOST}' port='${process.env.DB_PORT}' db='${process.env.DB_NAME}' - ${err.message}`);
-                console.error(`   Env check: DB_PASS=${process.env.DB_PASS ? 'SET' : 'MISSING'}`);
-
+                // Clean log: do not reference individual DB_* variables
+                console.error(`❌ Database connection failed using DATABASE_URL - Error: ${err.message}`);
                 if (retriesLeft > 0) {
                     console.log(`🔄 Retrying connection in ${delay/1000} seconds... (${retriesLeft} retries left)`);
                     await new Promise(resolve => setTimeout(resolve, delay));
@@ -123,8 +127,6 @@ class DatabaseManager {
                 }
             }
         };
-
-        // Start the connection attempt process
         return attemptConnection(maxRetries);
     }
 
