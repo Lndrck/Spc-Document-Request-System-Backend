@@ -61,7 +61,7 @@ class DatabaseManager {
                 user: process.env.DB_USER, // root
                 password: process.env.DB_PASS, // omDntoCrWnsUAMoExywuaZpzAnwMFiwd
                 database: process.env.DB_NAME, // railway
-                port: parseInt(process.env.DB_PORT), // 28318
+                port: Number(process.env.DB_PORT), // 28318
                 connectionLimit: 10,
                 multipleStatements: true,
                 connectTimeout: 10000,
