@@ -56,21 +56,22 @@ class DatabaseManager {
      */
     createConnection() {
         try {
-            // TEMPORARY: Use root credentials to fix permissions for render_app
-            const useSSL = true;
-            const rootPass = "omDntoCrWnsUAMoExywuaZpzAnwMFiwd";
-
             this.db = mysql.createPool({
-                host: "crossover.proxy.rlwy.net",
-                user: "root",
-                password: rootPass,
-                database: "railway",
-                port: 28318,
-                connectionLimit: 1,
+                host: process.env.DB_HOST, // crossover.proxy.rlwy.net
+                user: process.env.DB_USER, // root
+                password: process.env.DB_PASS, // omDntoCrWnsUAMoExywuaZpzAnwMFiwd
+                database: process.env.DB_NAME, // railway
+                port: parseInt(process.env.DB_PORT), // 28318
+                connectionLimit: 10,
                 multipleStatements: true,
-                ssl: { rejectUnauthorized: false }
+                connectTimeout: 10000,
+                // CRITICAL: Force SSL for Railway Public Proxy
+                ssl: {
+                    rejectUnauthorized: false
+                }
             });
-            console.log('🛠️ Temporary Root Pool created for user setup');
+
+            console.log('🔗 MySQL connection pool created with SSL enabled');
             return this.db;
         } catch (error) {
             console.error('❌ Pool creation failed:', error.message);
@@ -101,11 +102,9 @@ class DatabaseManager {
             try {
                 if (!this.db) { this.createConnection(); }
 
-                console.log('👤 Attempting to create service user "render_app"...');
-                await this.db.query("CREATE USER IF NOT EXISTS 'render_app'@'%' IDENTIFIED BY 'RailwayPass123!'");
-                await this.db.query("GRANT ALL PRIVILEGES ON railway.* TO 'render_app'@'%'");
-                await this.db.query("FLUSH PRIVILEGES");
-                console.log('✅ SUCCESS: "render_app" user created and permitted.');
+                // Simple connection test - no user creation logic
+                await this.db.query('SELECT 1');
+                console.log('✅ Database connected successfully');
                 this.isConnected = true;
                 return;
             } catch (err) {
@@ -146,12 +145,16 @@ class DatabaseManager {
         try {
             if (!this.isConnected || !this.db) return;
 
-            // No CREATE DATABASE or USE logic here; assumes DB already exists (cloud compatible)
+            console.log('🔄 Starting table verification...');
+            
+            // IMPORTANT: We skip "CREATE DATABASE" because Railway 
+            // provides the 'railway' database for you.
             await this.createTables();
             await this.createDefaultUsers();
+
             console.log('✅ Database initialization completed successfully');
         } catch (error) {
-            console.error('❌ Error during database initialization:', error.message);
+            console.error('❌ Initialization failed:', error.message);
             throw error;
         }
     }
