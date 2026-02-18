@@ -71,7 +71,7 @@ class DatabaseManager {
                 }
             });
 
-            console.log('🔗 MySQL connection pool created with SSL enabled');
+            console.log('🔗 MySQL connection pool established via SSL');
             return this.db;
         } catch (error) {
             console.error('❌ Pool creation failed:', error.message);
