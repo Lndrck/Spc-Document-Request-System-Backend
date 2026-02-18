@@ -59,11 +59,11 @@ class DatabaseManager {
             // Create connection pool with optimized settings
             this.db = mysql.createPool({
                 // Database server configuration (from environment variables or defaults)
-                host: process.env.DB_HOST || "localhost", // MySQL server hostname
-                user: process.env.DB_USER || "root", // MySQL username
-                password: process.env.DB_PASSWORD || "", // MySQL password
-                database: process.env.DB_NAME || "document_request_db", // Target database name
-                port: process.env.DB_PORT || 3306, // MySQL port
+                host: process.env.DB_HOST,
+                user: process.env.DB_USER,
+                password: process.env.DB_PASS, 
+                database: process.env.DB_NAME, 
+                port: process.env.DB_PORT,
 
                 // Pool configuration for performance and reliability
                 connectionLimit: 10, // Maximum number of connections in pool

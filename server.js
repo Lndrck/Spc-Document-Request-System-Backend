@@ -14,6 +14,7 @@
  */
 
 // Import required Node.js modules and dependencies
+// Load environment from .env locally
 require('dotenv').config();
 const env = require('./config/env');
 const express = require('express');
