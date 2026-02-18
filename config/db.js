@@ -56,29 +56,23 @@ class DatabaseManager {
      */
     createConnection() {
         try {
-            // Create connection pool with optimized settings
             this.db = mysql.createPool({
-                // Database server configuration (from environment variables or defaults)
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
-                password: process.env.DB_PASS, 
-                database: process.env.DB_NAME, 
-                port: process.env.DB_PORT,
-
-                // Pool configuration for performance and reliability
-                connectionLimit: 10, // Maximum number of connections in pool
-                queueLimit: 0, // Unlimited queue for connection requests
-
-                // Advanced MySQL features
-                multipleStatements: true // Allow multiple SQL statements in one query
+                password: process.env.DB_PASS,
+                database: process.env.DB_NAME,
+                port: parseInt(process.env.DB_PORT),
+                connectionLimit: 10,
+                queueLimit: 0,
+                multipleStatements: true,
+                connectTimeout: 10000,
+                ssl: { rejectUnauthorized: false }
             });
-
             console.log('🔗 MySQL connection pool created successfully');
             return this.db;
-
         } catch (error) {
             console.error('❌ Failed to create database connection pool:', error.message);
-            throw error; // Re-throw to allow caller to handle
+            throw error;
         }
     }
 
@@ -103,39 +97,24 @@ class DatabaseManager {
          */
         const attemptConnection = async (retriesLeft) => {
             try {
-                // Ensure connection pool exists before testing
-                if (!this.db) {
-                    this.createConnection();
-                }
+                if (!this.db) this.createConnection();
 
                 // Test the connection with a simple query
-                // This validates both network connectivity and database availability
                 await this.db.execute('SELECT 1');
                 console.log('✅ MySQL Connected successfully');
                 this.isConnected = true;
                 return;
-
             } catch (err) {
-                console.error(`❌ Database connection failed: ${err.message}`);
+                // Clear, actionable logging showing which env vars were used (without exposing the password)
+                console.error(`❌ Database connection failed for user='${process.env.DB_USER}' host='${process.env.DB_HOST}' port='${process.env.DB_PORT}' db='${process.env.DB_NAME}' - ${err.message}`);
+                console.error(`   Env check: DB_PASS=${process.env.DB_PASS ? 'SET' : 'MISSING'}`);
 
-                // Check if we have retries remaining
                 if (retriesLeft > 0) {
                     console.log(`🔄 Retrying connection in ${delay/1000} seconds... (${retriesLeft} retries left)`);
-
-                    // Wait before retrying (could implement exponential backoff here)
                     await new Promise(resolve => setTimeout(resolve, delay));
-
-                    // Recursive retry with decremented counter
                     return attemptConnection(retriesLeft - 1);
                 } else {
-                    // No retries left - log helpful error information
                     console.error(`❌ Could not connect to MySQL after ${maxRetries} attempts`);
-                    console.error('💡 Please ensure:');
-                    console.error('   • MySQL server is running');
-                    console.error('   • Database credentials are correct');
-                    console.error('   • Network connectivity to database server');
-                    console.error('   • Database server is accepting connections');
-
                     this.isConnected = false;
                     throw new Error('Database connection failed after all retry attempts');
                 }
@@ -161,38 +140,17 @@ class DatabaseManager {
      */
     async initializeDatabase() {
         try {
-            // Pre-flight check: Ensure database connection is available
             if (!this.isConnected || !this.db) {
-                console.warn('⚠️  Database not connected, skipping initialization');
+                console.warn('⚠️ Database not connected, skipping initialization');
                 return;
             }
-
-            console.log('🔄 Starting database initialization...');
-
-            // Step 1: Create database if it doesn't exist
-            // Uses raw query for DDL (Data Definition Language) commands
-            await this.executeRawQuery('CREATE DATABASE IF NOT EXISTS document_request_db');
-            console.log('📊 Database "document_request_db" created or already exists');
-
-            // Step 2: Switch to the target database context
-            await this.executeRawQuery('USE document_request_db');
-            console.log('📊 Switched to document_request_db');
-
-            // Step 3: Create all required tables with proper structure
+            console.log('🔄 Starting table verification...');
+            // REMOVED: CREATE DATABASE and USE commands to avoid Access Denied errors
             await this.createTables();
-
-            // Step 4: Create default system users (admin and staff)
             await this.createDefaultUsers();
-
-            console.log('✅ Database initialization completed successfully');
-
+            console.log('✅ Database tables verified/created successfully');
         } catch (error) {
             console.error('❌ Error during database initialization:', error.message);
-            console.error('💡 Common issues:');
-            console.error('   • MySQL server not running');
-            console.error('   • Insufficient privileges for database creation');
-            console.error('   • Network connectivity issues');
-            console.error('   • Port conflicts or firewall blocking');
             throw error;
         }
     }

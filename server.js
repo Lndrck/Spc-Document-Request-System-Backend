@@ -30,8 +30,14 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 const secureMiddleware = require('./middleware/secureMiddleware');
 const logger = require('./utils/logger');
 
+
 const app = express();
 const port = process.env.PORT || env.PORT || 5000;
+
+// Health check route for Render/host root
+app.get('/', (req, res) => {
+  res.status(200).send('Database Manager is running');
+});
 
 const httpServer = http.createServer(app);
 
