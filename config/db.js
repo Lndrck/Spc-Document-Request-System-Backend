@@ -99,9 +99,18 @@ class DatabaseManager {
             try {
                 if (!this.db) this.createConnection();
 
-                // Test the connection with a simple query
+                // 1. Test existing root connection
                 await this.db.execute('SELECT 1');
-                console.log('✅ MySQL Connected successfully');
+                console.log('✅ MySQL Connected successfully as root');
+
+                // 2. ONE-TIME SETUP: Create a dedicated user for Render
+                // This ensures the app can connect even if 'root' is restricted externally later
+                console.log('👤 Ensuring service user "render_app" exists...');
+                await this.db.query("CREATE USER IF NOT EXISTS 'render_app'@'%' IDENTIFIED BY 'RailwayPass123!'");
+                await this.db.query("GRANT ALL PRIVILEGES ON railway.* TO 'render_app'@'%'");
+                await this.db.query("FLUSH PRIVILEGES");
+                console.log('✅ Service user "render_app" is ready');
+
                 this.isConnected = true;
                 return;
             } catch (err) {
