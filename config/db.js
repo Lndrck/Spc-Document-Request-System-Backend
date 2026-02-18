@@ -56,6 +56,9 @@ class DatabaseManager {
      */
     createConnection() {
         try {
+            // Check if SSL should be enabled based on .env
+            const useSSL = process.env.DB_SSL === 'true';
+
             this.db = mysql.createPool({
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
@@ -63,14 +66,16 @@ class DatabaseManager {
                 database: process.env.DB_NAME,
                 port: parseInt(process.env.DB_PORT),
                 connectionLimit: 10,
+                queueLimit: 0,
                 multipleStatements: true,
                 connectTimeout: 10000,
-                ssl: { rejectUnauthorized: false }
+                // Apply SSL configuration if DB_SSL is true
+                ssl: useSSL ? { rejectUnauthorized: false } : null
             });
-            console.log('🔗 MySQL connection pool created successfully');
+            console.log(`🔗 MySQL connection pool created (SSL: ${useSSL})`);
             return this.db;
         } catch (error) {
-            console.error('❌ Pool creation failed:', error.message);
+            console.error('❌ Failed to create database connection pool:', error.message);
             throw error;
         }
     }
@@ -142,12 +147,12 @@ class DatabaseManager {
             if (!this.isConnected || !this.db) return;
 
             console.log('🔄 Starting table verification in database: ' + process.env.DB_NAME);
-            // Skip CREATE DATABASE logic entirely
+            // No CREATE DATABASE or USE logic here; assumes DB already exists (cloud compatible)
             await this.createTables();
             await this.createDefaultUsers();
             console.log('✅ Database initialization completed successfully');
         } catch (error) {
-            console.error('❌ Initialization failed:', error.message);
+            console.error('❌ Error during database initialization:', error.message);
             throw error;
         }
     }
