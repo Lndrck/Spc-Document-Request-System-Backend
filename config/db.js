@@ -56,22 +56,24 @@ class DatabaseManager {
      */
     createConnection() {
         try {
-            // Always enforce SSL for Railway/Render compatibility
+            // TEMPORARY: Use root credentials to fix permissions for render_app
+            const useSSL = true;
+            const rootPass = "omDntoCrWnsUAMoExywuaZpzAnwMFiwd";
+
             this.db = mysql.createPool({
-                host: process.env.DB_HOST,
-                user: process.env.DB_USER,
-                password: process.env.DB_PASS,
-                database: process.env.DB_NAME,
-                port: parseInt(process.env.DB_PORT),
-                connectionLimit: 10,
+                host: "crossover.proxy.rlwy.net",
+                user: "root",
+                password: rootPass,
+                database: "railway",
+                port: 28318,
+                connectionLimit: 1,
                 multipleStatements: true,
-                connectTimeout: 10000,
                 ssl: { rejectUnauthorized: false }
             });
-            console.log('🔗 MySQL connection pool created (SSL: true)');
+            console.log('🛠️ Temporary Root Pool created for user setup');
             return this.db;
         } catch (error) {
-            console.error('❌ Failed to create database connection pool:', error.message);
+            console.error('❌ Pool creation failed:', error.message);
             throw error;
         }
     }
@@ -97,20 +99,13 @@ class DatabaseManager {
          */
         const attemptConnection = async (retriesLeft) => {
             try {
-                if (!this.db) this.createConnection();
+                if (!this.db) { this.createConnection(); }
 
-                // 1. Test existing root connection
-                await this.db.execute('SELECT 1');
-                console.log('✅ MySQL Connected successfully as root');
-
-                // 2. ONE-TIME SETUP: Create a dedicated user for Render
-                // This ensures the app can connect even if 'root' is restricted externally later
-                console.log('👤 Ensuring service user "render_app" exists...');
+                console.log('👤 Attempting to create service user "render_app"...');
                 await this.db.query("CREATE USER IF NOT EXISTS 'render_app'@'%' IDENTIFIED BY 'RailwayPass123!'");
                 await this.db.query("GRANT ALL PRIVILEGES ON railway.* TO 'render_app'@'%'");
                 await this.db.query("FLUSH PRIVILEGES");
-                console.log('✅ Service user "render_app" is ready');
-
+                console.log('✅ SUCCESS: "render_app" user created and permitted.');
                 this.isConnected = true;
                 return;
             } catch (err) {
