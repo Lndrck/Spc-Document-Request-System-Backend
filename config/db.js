@@ -56,9 +56,7 @@ class DatabaseManager {
      */
     createConnection() {
         try {
-            // Check if SSL should be enabled based on .env
-            const useSSL = process.env.DB_SSL === 'true';
-
+            // Always enforce SSL for Railway/Render compatibility
             this.db = mysql.createPool({
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
@@ -66,13 +64,11 @@ class DatabaseManager {
                 database: process.env.DB_NAME,
                 port: parseInt(process.env.DB_PORT),
                 connectionLimit: 10,
-                queueLimit: 0,
                 multipleStatements: true,
                 connectTimeout: 10000,
-                // Apply SSL configuration if DB_SSL is true
-                ssl: useSSL ? { rejectUnauthorized: false } : null
+                ssl: { rejectUnauthorized: false }
             });
-            console.log(`🔗 MySQL connection pool created (SSL: ${useSSL})`);
+            console.log('🔗 MySQL connection pool created (SSL: true)');
             return this.db;
         } catch (error) {
             console.error('❌ Failed to create database connection pool:', error.message);
@@ -146,7 +142,6 @@ class DatabaseManager {
         try {
             if (!this.isConnected || !this.db) return;
 
-            console.log('🔄 Starting table verification in database: ' + process.env.DB_NAME);
             // No CREATE DATABASE or USE logic here; assumes DB already exists (cloud compatible)
             await this.createTables();
             await this.createDefaultUsers();
