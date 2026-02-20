@@ -574,7 +574,7 @@ class DatabaseManager {
                     time_start TIME NULL,
                     time_end TIME NULL,
                     message TEXT NULL,
-                    is_published TINYINT(1) DEFAULT 0, -- <--- ADD THIS LINE
+                    is_published TINYINT(1) DEFAULT 0,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     INDEX idx_date (date),
