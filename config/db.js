@@ -574,12 +574,14 @@ class DatabaseManager {
                     time_start TIME NULL,
                     time_end TIME NULL,
                     message TEXT NULL,
+                    is_published TINYINT(1) DEFAULT 0, -- <--- ADD THIS LINE
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     INDEX idx_date (date),
-                    INDEX idx_status (status)
+                    INDEX idx_status (status),
+                    INDEX idx_published (is_published) -- <--- OPTIONAL: ADD INDEX FOR SPEED
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            `;
+            `;  
             await this.executeQuery(createTransactionDaysTable);
             console.log('✅ Transaction days table created');
 
