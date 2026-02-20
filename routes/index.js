@@ -93,6 +93,7 @@ router.use('/', emailVerificationRoutes); // Email verification routes are mount
 // Public API endpoints for frontend
 router.get('/public/announcements', asyncHandler(async (req, res, next) => {
     try {
+        console.log('🔍 [ROUTE DEBUG] /public/announcements endpoint HIT');
         const announcementController = new AnnouncementController(req.dbManager);
         await announcementController.getAllAnnouncements(req, res, next);
     } catch (error) {
@@ -107,6 +108,7 @@ router.get('/public/announcements', asyncHandler(async (req, res, next) => {
 
 router.get('/public/transaction-days', asyncHandler(async (req, res, next) => {
     try {
+        console.log('🔍 [ROUTE DEBUG] /public/transaction-days endpoint HIT');
         const transactionController = new TransactionController(req.dbManager);
         await transactionController.getAllTransactionDays(req, res, next);
     } catch (error) {
