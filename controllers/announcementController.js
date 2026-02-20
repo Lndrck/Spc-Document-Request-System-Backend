@@ -319,7 +319,9 @@ class AnnouncementController {
      */
     getPublicAnnouncement = async (req, res, next) => {
         try {
+            console.log('🔍 [CONTROLLER] getPublicAnnouncement called');
             const announcement = await this.announcementModel.getLatest();
+            console.log('🔍 [CONTROLLER] Found announcement:', announcement);
 
             if (!announcement) {
                 return res.json({

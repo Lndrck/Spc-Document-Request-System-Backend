@@ -82,7 +82,9 @@ class TransactionController {
     getUpcomingTransactionDays = async (req, res, next) => {
         try {
             const { limit = 30 } = req.query;
+            console.log('🔍 [CONTROLLER] getUpcomingTransactionDays called with limit:', limit);
             const transactionDays = await this.transactionDayModel.getUpcoming(parseInt(limit));
+            console.log('🔍 [CONTROLLER] Found upcoming transaction days:', transactionDays.length);
 
             res.json({
                 success: true,

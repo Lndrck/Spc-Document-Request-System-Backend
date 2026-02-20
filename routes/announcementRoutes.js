@@ -39,6 +39,7 @@ router.get('/latest', asyncHandler(async (req, res, next) => {
  * @access Public
  */
 router.get('/public', asyncHandler(async (req, res, next) => {
+    console.log('🔍 [ROUTE DEBUG] /announcements/public endpoint HIT');
     const controller = new AnnouncementController(req.dbManager);
     await controller.getPublicAnnouncement(req, res, next);
 }));

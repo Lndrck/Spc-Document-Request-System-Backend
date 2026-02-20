@@ -46,6 +46,8 @@ router.get('/range', asyncHandler(async (req, res, next) => {
  * }
  */
 router.get('/upcoming', asyncHandler(async (req, res, next) => {
+    console.log('🔍 [ROUTE DEBUG] /transactions/upcoming endpoint HIT');
+    console.log('🔍 [ROUTE DEBUG] Query params:', req.query);
     const controller = new TransactionController(req.dbManager);
     await controller.getUpcomingTransactionDays(req, res, next);
 }));

@@ -109,6 +109,7 @@ router.get('/public/announcements', asyncHandler(async (req, res, next) => {
 router.get('/public/transaction-days', asyncHandler(async (req, res, next) => {
     try {
         console.log('🔍 [ROUTE DEBUG] /public/transaction-days endpoint HIT');
+        console.log('🔍 [ROUTE DEBUG] Query params:', req.query);
         const transactionController = new TransactionController(req.dbManager);
         await transactionController.getAllTransactionDays(req, res, next);
     } catch (error) {
