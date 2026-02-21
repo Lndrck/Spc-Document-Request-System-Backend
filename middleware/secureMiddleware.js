@@ -12,11 +12,12 @@ function secureMiddleware(appOrigin) {
 
   // Allow multiple origins: localhost for dev, Vercel for production
   const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://spc-document-request-system-three.vercel.app',
-    appOrigin
-  ].filter(Boolean);
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://spc-document-request-system-three.vercel.app', // Your new domain
+  'https://spc-document-request-system-9nlmjv2ak-doms-projects-4253da97.vercel.app', // The preview domain from logs
+  appOrigin
+].filter(Boolean);
 
   const corsOptions = {
     origin: function(origin, callback) {
