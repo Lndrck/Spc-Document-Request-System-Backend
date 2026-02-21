@@ -30,8 +30,8 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 const secureMiddleware = require('./middleware/secureMiddleware');
 const logger = require('./utils/logger');
 
-
 const app = express();
+app.set('trust proxy', 1);
 const port = process.env.PORT || env.PORT || 5000;
 
 // Health check route for Render/host root
