@@ -82,8 +82,12 @@ class TransactionController {
     getUpcomingTransactionDays = async (req, res, next) => {
         try {
             const { limit = 30 } = req.query;
-            console.log('🔍 [CONTROLLER] getUpcomingTransactionDays called with limit:', limit);
-            const transactionDays = await this.transactionDayModel.getUpcoming(parseInt(limit));
+            
+            // FIX: Add || 30 here as well to handle NaN cases
+            const numericLimit = parseInt(limit, 10) || 30;
+
+            console.log('🔍 [CONTROLLER] getUpcomingTransactionDays called with limit:', numericLimit);
+            const transactionDays = await this.transactionDayModel.getUpcoming(numericLimit);
             console.log('🔍 [CONTROLLER] Found upcoming transaction days:', transactionDays.length);
 
             res.json({

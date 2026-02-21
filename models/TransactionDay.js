@@ -244,13 +244,17 @@ class TransactionDay {
      */
     async getUpcoming(limit = 30) {
         try {
+            // FIX: Ensure limit is a valid integer. 
+            // If parseInt results in NaN, fall back to the default (30).
+            const safeLimit = parseInt(limit, 10) || 30;
+
             return await this.dbManager.executeQuery(`
                 SELECT id, date, status, time_start, time_end, message, created_at, updated_at
                 FROM transaction_days
                 WHERE date >= CURDATE()
                 ORDER BY date ASC
                 LIMIT ?
-            `, [limit]);
+            `, [safeLimit]); // Use the sanitized safeLimit
         } catch (error) {
             console.error('Error fetching upcoming transaction days:', error);
             throw error;
